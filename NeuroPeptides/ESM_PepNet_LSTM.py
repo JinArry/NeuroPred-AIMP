@@ -149,10 +149,10 @@ class AIMP(torch.nn.Module):
 
         feas_em = self.embedding(torch.cat([pre_feas, tcn_out], dim=-1).permute(0, 2, 1)).permute(0, 2, 1)
 
-        # transformer_out = self.lstm(feas_em) 消融LSTM
-        # transformer_out = self.transformer_act(transformer_out.permute(0, 2, 1)).permute(0, 2, 1) 消融LSTM
+        transformer_out = self.lstm(feas_em)
+        transformer_out = self.transformer_act(transformer_out.permute(0, 2, 1)).permute(0, 2, 1)
 
-        transformer_out = self.transformer_act(feas_em.permute(0, 2, 1)).permute(0, 2, 1)
+        # transformer_out = self.transformer_act(feas_em.permute(0, 2, 1)).permute(0, 2, 1)
         transformer_out = self.transformer_res(torch.cat([transformer_out, feas_em], dim=-1).permute(0, 2, 1)).permute(
             0, 2, 1)
         transformer_out = self.transformer_pool(transformer_out).squeeze(1)
