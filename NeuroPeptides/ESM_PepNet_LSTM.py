@@ -5,9 +5,6 @@ from torch import nn
 import esm
 
 
-
-
-
 class TCN(nn.Module):
     def __init__(self, input_size, output_size, num_channels, kernel_size, dropout):
         super(TCN, self).__init__()
@@ -37,11 +34,10 @@ class ESM(nn.Module):
         self.batch_converter = self.alphabet.get_batch_converter()
 
     def forward(self, prot_seqs):
-        device = "cuda:1"
         data = [('seq{}'.format(i), seq) for i, seq in enumerate(prot_seqs)]
         batch_labels, batch_strs, batch_tokens = self.batch_converter(data)
         with torch.no_grad():
-            results = self.esm_model(batch_tokens.to(device), repr_layers=[33], return_contacts=False)
+            results = self.esm_model(batch_tokens.cuda(), repr_layers=[33], return_contacts=False)
         token_representations = results["representations"][33][:, 1:-1]
         prot_embedding = token_representations
         return prot_embedding
@@ -153,8 +149,10 @@ class AIMP(torch.nn.Module):
 
         feas_em = self.embedding(torch.cat([pre_feas, tcn_out], dim=-1).permute(0, 2, 1)).permute(0, 2, 1)
 
-        transformer_out = self.lstm(feas_em)
-        transformer_out = self.transformer_act(transformer_out.permute(0, 2, 1)).permute(0, 2, 1)
+        # transformer_out = self.lstm(feas_em) 消融LSTM
+        # transformer_out = self.transformer_act(transformer_out.permute(0, 2, 1)).permute(0, 2, 1) 消融LSTM
+
+        transformer_out = self.transformer_act(feas_em.permute(0, 2, 1)).permute(0, 2, 1)
         transformer_out = self.transformer_res(torch.cat([transformer_out, feas_em], dim=-1).permute(0, 2, 1)).permute(
             0, 2, 1)
         transformer_out = self.transformer_pool(transformer_out).squeeze(1)
