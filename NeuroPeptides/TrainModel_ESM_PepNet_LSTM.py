@@ -13,7 +13,7 @@ from sklearn.metrics import matthews_corrcoef, f1_score
 
 warnings.filterwarnings('ignore')
 set_seed(500)  # set_seed(4)
-device = "cuda:1"
+device = "cuda:0"
 model_checkpoint = "facebook/esm2_t6_8M_UR50D"
 
 # Load data
@@ -59,9 +59,8 @@ val_dict = {"text": val_sequences, 'labels': val_labels}
 
 epochs = 50
 learning_rate = 5e-5
-batch_size = 1280
+batch_size = 128
 
-import numpy as np
 
 def one_hot_encode_protein(sequence):
     """
@@ -111,7 +110,6 @@ train_data = MyDataset(train_dict)
 val_data = MyDataset(val_dict)
 train_dataloader = DataLoader(train_data, batch_size=batch_size, shuffle=True)  # Shuffle for training
 val_dataloader = DataLoader(val_data, batch_size=batch_size, shuffle=False)
-print("Current device:", torch.cuda.current_device())
 
 # Initialize model, criterion and optimizer hidden=640
 model = AIMP(pre_feas_dim=1280, feas_dim=21, hidden=1024, n_lstm=5, dropout=0.5)
